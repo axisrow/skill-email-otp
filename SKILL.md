@@ -93,10 +93,13 @@ python3 scripts/tempmail_otp.py domains [--json]
 
 ## Output Files
 
-When an OTP or link is found, the script automatically saves them:
+When an OTP or link is found, the script automatically saves them to the unified state directory:
 
-- `.last_otp` - Contains the last extracted OTP code
-- `.last_link` - Contains the first interesting validation link found
+- `~/.tempmail_otp/last_otp` - Contains the last extracted OTP code
+- `~/.tempmail_otp/last_link` - Contains the first interesting validation link found
+- `~/.tempmail_otp/account.json` - Account credentials (JWT token, email, password)
+
+All state files are stored in `~/.tempmail_otp/` with restricted permissions (0600).
 
 ## OTP Detection Patterns
 
@@ -116,14 +119,31 @@ The script extracts all HTTP/HTTPS links from email HTML, filtering out:
 
 ## State Management
 
-Account credentials are stored in `~/.tempmail_otp/account.json` with restricted permissions (0600). This allows the `check` and `list` commands to work without re-specifying credentials.
+All state is stored in a unified directory: `~/.tempmail_otp/`
+
+- `account.json` - Account credentials and JWT token (created by `create` command)
+- `last_otp` - Most recent OTP code extracted (created by `check` command)
+- `last_link` - First validation link extracted (created by `check` command)
+
+Files have restricted permissions (0600) for security. The `check` and `list` commands automatically use stored credentials.
+
+### Design Rationale
+
+The unified state directory follows best practices for CLI tools:
+
+1. **No project pollution** - No temporary files are created in your working directory
+2. **Predictable location** - All state is in one place, easy to find and clean up
+3. **Cross-session persistence** - Works from any directory on your system
+4. **Permission safety** - Sensitive credentials have proper file permissions
+
+To reset all state: `rm -rf ~/.tempmail_otp/`
 
 ## Typical Workflow
 
 1. **Create account** - Generate a new temporary email address
 2. **Use email** - Provide the email during service signup
 3. **Monitor inbox** - Run the check command to wait for OTP/link
-4. **Extract code** - OTP is automatically displayed and saved to `.last_otp`
+4. **Extract code** - OTP is automatically displayed and saved to `~/.tempmail_otp/last_otp`
 5. **Verify** - Use the OTP or link to complete verification
 
 ## Example Session
@@ -147,7 +167,7 @@ Timeout: 300s | Poll interval: 3s
    Subject: Your verification code
 
 ✅ OTP FOUND: 842197
-OTP saved to .last_otp
+OTP saved to /home/user/.tempmail_otp/last_otp
 --------------------------------------------------
 ```
 

@@ -5,5 +5,3 @@ tgcm/.config.json
 tgcm/channels.json
 __pycache__/
 usage-*.jpg
-.last_link
-.last_otp

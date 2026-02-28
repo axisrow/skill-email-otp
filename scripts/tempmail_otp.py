@@ -32,9 +32,12 @@ except ImportError:
     sys.exit(1)
 
 
-# State file for storing credentials
+# Unified state directory for all temp files
+# Following XDG-like pattern: ~/.tempmail_otp/
 STATE_DIR = os.path.expanduser("~/.tempmail_otp")
 STATE_FILE = os.path.join(STATE_DIR, "account.json")
+LAST_OTP_FILE = os.path.join(STATE_DIR, "last_otp")
+LAST_LINK_FILE = os.path.join(STATE_DIR, "last_link")
 
 
 def ensure_state_dir():
@@ -334,9 +337,10 @@ def cmd_check(args):
                     print(f"\n✅ OTP FOUND: {otp}")
 
                     # Save OTP to file
-                    with open(".last_otp", "w") as f:
+                    ensure_state_dir()
+                    with open(LAST_OTP_FILE, "w") as f:
                         f.write(otp)
-                    print(f"OTP saved to .last_otp")
+                    print(f"OTP saved to {LAST_OTP_FILE}")
                     print("-" * 50)
 
                     if args.once:
@@ -362,9 +366,10 @@ def cmd_check(args):
 
                     # Save first interesting link
                     if interesting_urls:
-                        with open(".last_link", "w") as f:
+                        ensure_state_dir()
+                        with open(LAST_LINK_FILE, "w") as f:
                             f.write(interesting_urls[0])
-                        print(f"\nFirst link saved to .last_link")
+                        print(f"\nFirst link saved to {LAST_LINK_FILE}")
 
                 if not otp and not urls:
                     print("   No OTP or links detected in message")
